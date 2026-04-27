@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, RefreshCw, Trash2, Power } from "lucide-react";
+import { Loader2, RefreshCw, Trash2, Power, KeyRound } from "lucide-react";
 import CopySecretModal from "@/components/CopySecretModal";
 import ConfirmationModal from "@/components/ConfirmationModal";
 
@@ -15,8 +15,10 @@ export default function TenantActions({ tenantId, active }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [rotated, setRotated] = useState<string | null>(null);
+  const [rotatedToken, setRotatedToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmRotate, setConfirmRotate] = useState(false);
+  const [confirmRotateToken, setConfirmRotateToken] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   async function rotate() {
@@ -34,6 +36,27 @@ export default function TenantActions({ tenantId, active }: Props) {
         return;
       }
       setRotated(data.setupCode);
+      router.refresh();
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function rotateToken() {
+    setBusy("rotateToken");
+    setError(null);
+    setConfirmRotateToken(false);
+    try {
+      const res = await fetch(
+        `/api/tenants/${tenantId}/rotate-api-token`,
+        { method: "POST" },
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Falha ao resetar token.");
+        return;
+      }
+      setRotatedToken(data.apiToken);
       router.refresh();
     } finally {
       setBusy(null);
@@ -107,6 +130,20 @@ export default function TenantActions({ tenantId, active }: Props) {
 
         <button
           type="button"
+          onClick={() => setConfirmRotateToken(true)}
+          disabled={busy !== null}
+          className="btn-secondary"
+        >
+          {busy === "rotateToken" ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <KeyRound className="w-4 h-4" />
+          )}
+          Resetar API token
+        </button>
+
+        <button
+          type="button"
           onClick={toggleActive}
           disabled={busy !== null}
           className="btn-secondary"
@@ -135,6 +172,15 @@ export default function TenantActions({ tenantId, active }: Props) {
         />
       )}
 
+      {rotatedToken && (
+        <CopySecretModal
+          title="API token resetado"
+          warning="Copie o novo API token agora. Ele NÃO será exibido novamente. Atualize o backend com o novo token."
+          secrets={[{ label: "Novo API token", value: rotatedToken }]}
+          onClose={() => setRotatedToken(null)}
+        />
+      )}
+
       {confirmRotate && (
         <ConfirmationModal
           title="Resetar setup_code"
@@ -143,6 +189,18 @@ export default function TenantActions({ tenantId, active }: Props) {
           onCancel={() => setConfirmRotate(false)}
           confirmText="Resetar"
           isLoading={busy === "rotate"}
+        />
+      )}
+
+      {confirmRotateToken && (
+        <ConfirmationModal
+          title="Resetar API token"
+          message="Esta ação substitui o token de autenticação da API. O backend precisará ser atualizado com o novo token. Tem certeza?"
+          danger
+          onConfirm={rotateToken}
+          onCancel={() => setConfirmRotateToken(false)}
+          confirmText="Resetar token"
+          isLoading={busy === "rotateToken"}
         />
       )}
 

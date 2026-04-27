@@ -15,6 +15,7 @@ declare module 'lucide-react' {
   export const X: LucideIcon;
   export const RefreshCw: LucideIcon;
   export const Power: LucideIcon;
+  export const KeyRound: LucideIcon;
   export const Edit: LucideIcon;
   export const Plus: LucideIcon;
   export const Server: LucideIcon;

@@ -133,6 +133,7 @@ export interface SetupVerifyResult {
   apiHost: string;
   apiPort: number;
   apiToken: string;
+  sessionVersion: number;
 }
 
 export async function verifyAndCompleteTenantSetup(
@@ -160,7 +161,30 @@ export async function verifyAndCompleteTenantSetup(
     apiHost: tenant.apiHost,
     apiPort: tenant.apiPort,
     apiToken: tenant.apiToken,
+    sessionVersion: tenant.sessionVersion,
   };
+}
+
+export async function validateSessionVersion(
+  slug: string,
+  version: number,
+): Promise<boolean> {
+  const tenant = await getTenantBySlug(slug);
+  if (!tenant || !tenant.active) return false;
+  return tenant.sessionVersion === version;
+}
+
+export async function rotateApiToken(
+  id: string,
+): Promise<{ tenant: Tenant; apiToken: string } | null> {
+  const apiToken = generateApiToken();
+  const [row] = await db
+    .update(tenants)
+    .set({ apiToken })
+    .where(eq(tenants.id, id))
+    .returning();
+  if (!row) return null;
+  return { tenant: row, apiToken };
 }
 
 export async function rotateSetupCode(
