@@ -13,7 +13,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [guestLoading, setGuestLoading] = useState(false);
+  // const [guestLoading, setGuestLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,27 +39,7 @@ export default function LoginForm() {
     }
   }
 
-  async function onGuestLogin() {
-    setError(null);
-    setGuestLoading(true);
-    try {
-      const res = await fetch("/api/auth/guest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Falha ao fazer login como guest.");
-        return;
-      }
-      window.location.href = next;
-    } catch {
-      setError("Erro de rede.");
-    } finally {
-      setGuestLoading(false);
-    }
-  }
+  // função de guest login removida
 
   return (
     <form
@@ -114,19 +94,7 @@ export default function LoginForm() {
         Entrar
       </button>
 
-      <button
-        type="button"
-        onClick={onGuestLogin}
-        disabled={guestLoading}
-        className="btn-secondary w-full"
-      >
-        {guestLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <LogIn className="w-4 h-4" />
-        )}
-        Acessar sem credenciais
-      </button>
+      {/* Botão de acessar sem credenciais removido */}
     </form>
   );
 }
