@@ -17,11 +17,11 @@ export default async function TenantDetailPage({
   if (!tenant) notFound();
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <main className="min-h-screen bg-slate-50">
+      <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-4">
         <Link
           href="/tenants"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900"
         >
           <ArrowLeft className="w-4 h-4" />
           Voltar

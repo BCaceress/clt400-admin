@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, RefreshCw, Trash2, Power } from "lucide-react";
 import CopySecretModal from "@/components/CopySecretModal";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 interface Props {
   tenantId: string;
@@ -15,16 +16,13 @@ export default function TenantActions({ tenantId, active }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [rotated, setRotated] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirmRotate, setConfirmRotate] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   async function rotate() {
-    if (
-      !confirm(
-        "Rotacionar o setup_code invalida sessões ativas. Confirmar?",
-      )
-    )
-      return;
     setBusy("rotate");
     setError(null);
+    setConfirmRotate(false);
     try {
       const res = await fetch(
         `/api/tenants/${tenantId}/rotate-setup-code`,
@@ -32,7 +30,7 @@ export default function TenantActions({ tenantId, active }: Props) {
       );
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Falha ao rotacionar.");
+        setError(data.error || "Falha ao resetar.");
         return;
       }
       setRotated(data.setupCode);
@@ -63,16 +61,9 @@ export default function TenantActions({ tenantId, active }: Props) {
   }
 
   async function remove() {
-    if (
-      !confirm(
-        "Excluir definitivamente este tenant? A ação não pode ser desfeita.",
-      )
-    )
-      return;
-    if (!confirm("Tem certeza? Esta é a confirmação final."))
-      return;
     setBusy("delete");
     setError(null);
+    setConfirmDelete(false);
     try {
       const res = await fetch(`/api/tenants/${tenantId}`, {
         method: "DELETE",
@@ -90,11 +81,11 @@ export default function TenantActions({ tenantId, active }: Props) {
   }
 
   return (
-    <section className="bg-white rounded-xl border border-slate-200 p-6 space-y-3">
-      <h2 className="font-semibold text-slate-800">Ações</h2>
+    <section className="bg-white border border-slate-200 p-5 rounded-lg">
+      <h2 className="text-sm font-semibold text-slate-900 mb-4">Ações</h2>
 
       {error && (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2 mb-4">
           {error}
         </div>
       )}
@@ -102,7 +93,7 @@ export default function TenantActions({ tenantId, active }: Props) {
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={rotate}
+          onClick={() => setConfirmRotate(true)}
           disabled={busy !== null}
           className="btn-secondary"
         >
@@ -111,7 +102,7 @@ export default function TenantActions({ tenantId, active }: Props) {
           ) : (
             <RefreshCw className="w-4 h-4" />
           )}
-          Rotacionar setup_code
+          Resetar setup_code
         </button>
 
         <button
@@ -126,7 +117,7 @@ export default function TenantActions({ tenantId, active }: Props) {
 
         <button
           type="button"
-          onClick={remove}
+          onClick={() => setConfirmDelete(true)}
           disabled={busy !== null}
           className="btn-danger"
         >
@@ -137,10 +128,33 @@ export default function TenantActions({ tenantId, active }: Props) {
 
       {rotated && (
         <CopySecretModal
-          title="Setup code rotacionado"
+          title="Setup code resetado"
           warning="Copie o novo setup_code agora. Ele NÃO será exibido novamente. Sessões ativas foram invalidadas — distribua o novo código apenas aos técnicos autorizados."
           secrets={[{ label: "Novo setup_code", value: rotated }]}
           onClose={() => setRotated(null)}
+        />
+      )}
+
+      {confirmRotate && (
+        <ConfirmationModal
+          title="Resetar setup_code"
+          message="Esta ação invalidará todas as sessões ativas. Técnicos precisarão do novo código para se conectar. Tem certeza?"
+          onConfirm={rotate}
+          onCancel={() => setConfirmRotate(false)}
+          confirmText="Resetar"
+          isLoading={busy === "rotate"}
+        />
+      )}
+
+      {confirmDelete && (
+        <ConfirmationModal
+          title="Excluir tenant"
+          message="Esta ação não pode ser desfeita. Todos os dados relacionados serão permanentemente removidos. Tem certeza?"
+          danger
+          onConfirm={remove}
+          onCancel={() => setConfirmDelete(false)}
+          confirmText="Excluir"
+          isLoading={busy === "delete"}
         />
       )}
     </section>

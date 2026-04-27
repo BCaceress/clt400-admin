@@ -8,7 +8,8 @@
       "Bash(npm list *)",
       "Bash(curl -s http://localhost:3000)",
       "mcp__Claude_in_Chrome__tabs_context_mcp",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
