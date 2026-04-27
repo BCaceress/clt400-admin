@@ -27,7 +27,6 @@ export default async function EditTenantPage({
 
       <header>
         <h1 className="text-2xl font-bold text-slate-800">Editar tenant</h1>
-        <p className="text-sm text-slate-500 font-mono">{tenant.subdomain}</p>
       </header>
 
       <EditForm
